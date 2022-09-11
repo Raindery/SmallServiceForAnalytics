@@ -14,4 +14,9 @@ public struct AnalyticsEvent
         _type = type;
         _data = data;
     }
+
+    public string DataString()
+    {
+        return $"Type: {_type}\nData:[{_data}]";
+    }
 }
