@@ -38,7 +38,7 @@ public sealed class AnalyticsEventService : MonoBehaviour
         #elif UNITY_WEBGL
         _isWebGLApp = true;
         #else
-        _eventCachePath = Path.Combine(Application.dataPath, _eventCacheFileName);
+        _eventCachePath = Path.Combine(Application.dataPath, EVENT_CACHE_FILE_NAME);
         #endif
 
         if (_dontDestroyOnLoad)
@@ -55,14 +55,9 @@ public sealed class AnalyticsEventService : MonoBehaviour
         StartCoroutine(SendTrackedEventsDataAfterCooldown());
     }
 
-    private void OnApplicationQuit()
-    {
-        CacheTrackedEvents();
-    }
-
     private void LateUpdate()
     {
-        if(Time.frameCount % 1200 == 0 || Time.frameCount == 1)
+        if (Time.frameCount % 1200 == 0 || Time.frameCount == 1)
         {
             StartCoroutine(AnalyticsServerAccess(isAccess =>
             {
@@ -79,10 +74,9 @@ public sealed class AnalyticsEventService : MonoBehaviour
                                 Debug.Log("Cached data sent!");
                                 ClearCachedEventsData();
                             }
-
                             else
                             {
-                                Debug.LogError("Error sending cached data");
+                                Debug.LogError(result.ToString());
                             }
                         }));
                     }
@@ -92,6 +86,21 @@ public sealed class AnalyticsEventService : MonoBehaviour
                     Debug.Log("Analytic server is not access!");
                 }
             }));
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        CacheTrackedEvents();
+        _events.Clear();
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+            CacheTrackedEvents();
+            _events.Clear();
         }
     }
 
@@ -137,17 +146,14 @@ public sealed class AnalyticsEventService : MonoBehaviour
         StartCoroutine(SendTrackedEventsToServer(_events.ToArray() ,result =>
         {
             if(result == UnityWebRequest.Result.Success)
-            {
                 _events.Clear();
-            }
             else
-            {
-                Debug.LogError("");
-            }
+                Debug.LogError(result.ToString());
         }));
 
         Debug.Log("End SendTrackedEventsDataAfterCooldown");
         StartCoroutine(SendTrackedEventsDataAfterCooldown());
+
         yield break;
     }
 
@@ -204,15 +210,11 @@ public sealed class AnalyticsEventService : MonoBehaviour
 
         if (_isWebGLApp)
         {
-            Debug.Log(PlayerPrefs.GetString(EVENT_CACHE_PLAYER_PREFS_KEY));
-
             string[] cachedEventsDataStrings = PlayerPrefs.GetString(EVENT_CACHE_PLAYER_PREFS_KEY).Trim(' ', '\n').Split('\n');
 
             for(int i = 0; i < cachedEventsDataStrings.Length; i++)
             {
-                Debug.Log(cachedEventsDataStrings[i]);
                 cachedAnalyticsEvents.AddRange(JsonConvert.DeserializeObject<AnalyticsEvent[]>(cachedEventsDataStrings[i]));
-                Debug.Log(cachedAnalyticsEvents.Count);
             }
         }
         else
@@ -220,7 +222,6 @@ public sealed class AnalyticsEventService : MonoBehaviour
             var lines = File.ReadLines(_eventCachePath);
             foreach (string dataLine in lines)
             {
-                Debug.Log(dataLine);
                 cachedAnalyticsEvents.AddRange(JsonConvert.DeserializeObject<AnalyticsEvent[]>(dataLine));
             }
         }
