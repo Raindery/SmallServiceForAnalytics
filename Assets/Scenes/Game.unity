@@ -316,7 +316,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 250
+    m_FontSize: 60
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 0
@@ -377,15 +377,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5654129831468817413, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_Spacing.y
-      value: 300
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 5654129831468817413, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
+      propertyPath: m_StartAxis
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5654129831468817413, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_CellSize.x
-      value: 1500
+      value: 250
       objectReference: {fileID: 0}
     - target: {fileID: 5654129831468817413, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_CellSize.y
-      value: 1000
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 5654129831468817418, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_Pivot.x
@@ -489,7 +493,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5654129831476297303, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_FontData.m_FontSize
-      value: 250
+      value: 60
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
@@ -566,7 +570,7 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 2960, y: 1440}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -757,7 +761,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 250
+    m_FontSize: 60
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 0
