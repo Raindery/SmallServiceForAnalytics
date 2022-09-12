@@ -1,14 +1,14 @@
+using System;
+using System.Text;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json;
 using UnityEngine.Networking;
-using System.Text;
-using System.IO;
 using UnityEngine.UI;
-using System.Linq;
+using Newtonsoft.Json;
 
-public class AnalyticsEventService : MonoBehaviour
+public sealed class AnalyticsEventService : MonoBehaviour
 {
     private const string EVENT_CACHE_FILE_NAME = "analytics-event-cache.json";
     private const string EVENT_CACHE_PLAYER_PREFS_KEY = "cachedAnalyticsEvents";
@@ -17,43 +17,62 @@ public class AnalyticsEventService : MonoBehaviour
     [SerializeField] private Text _text;
     [SerializeField] private string _serverUrl;
     [SerializeField] private float _cooldownBeforeSend = 1f;
-    [Min(1)]
+    [Min(50)]
     [SerializeField] private int _maxCountTrackedEvents = 1000;
     [SerializeField] private bool _dontDestroyOnLoad = false;
 
     private readonly Queue<AnalyticsEvent> _events = new Queue<AnalyticsEvent>();
     private string _eventCachePath;
     private bool _isWebGLApp = false;
-    
 
+    public static AnalyticsEventService Instance { get; private set; }
+    
     private void Awake()
     {
-#if UNITY_ANDROID
+        if (Instance == null)
+            Instance = this;
+
+        #if UNITY_ANDROID
         _eventCachePath = Path.Combine(Application.dataPath, EVENT_CACHE_FILE_NAME);
-#elif UNITY_WEBGL
+        #elif UNITY_WEBGL
         _isWebGLApp = true;
-#else
+        #else
         _eventCachePath = Path.Combine(Application.dataPath, _eventCacheFileName);
-#endif
+        #endif
 
         if (_dontDestroyOnLoad)
+        {
+            if (FindObjectsOfType<AnalyticsEventService>().Length > 1)
+                Destroy(gameObject);
+              
             DontDestroyOnLoad(gameObject);
+        }
     }
 
     private void Start()
     {
-        TrackEvent(new AnalyticsEvent("fdfd", "fdfd"));
-        TrackEvent(new AnalyticsEvent("fdfd", "fdfd"));
-        TrackEvent(new AnalyticsEvent("fdfd", "fdfd"));
-        TrackEvent(new AnalyticsEvent("fdfd", "fdfd"));
-        TrackEvent(new AnalyticsEvent("fdfd", "fdfd"));
-        TrackEvent(new AnalyticsEvent("fdfd", "fdfd"));
+        StartCoroutine(AnalyticsServerAccess(isAccess =>
+        {
+            if (isAccess)
+            {
+                TrackCachedEventsData();
+                StartCoroutine(SendTrackedEventsToServer());
+                StartCoroutine(SendTrackedEventsDataAfterCooldown());
+            }
+            else
+            {
+                Debug.Log("Analytic server is not access!");
+            }
+        }));
+    }
 
-        CacheTrackedEvents();
-        TrackCachedEventsData();
-        
-
-        //StartCoroutine(SendEventsDataAfterCooldown());
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+            Debug.Log(_events.Count);
+            CacheTrackedEvents();
+        }
     }
 
     public void TrackEvent(AnalyticsEvent analyticsEvent)
@@ -98,11 +117,13 @@ public class AnalyticsEventService : MonoBehaviour
         {
             Debug.Log(eventsRequest.error);
         }
+
+        yield break;
     }
 
     private IEnumerator SendTrackedEventsDataAfterCooldown()
     {
-        Debug.Log("Start coroutine");
+        Debug.Log("Start SendTrackedEventsDataAfterCooldown");
         float time = 0f;
 
         while(time.CompareTo(_cooldownBeforeSend) != 1)
@@ -113,8 +134,22 @@ public class AnalyticsEventService : MonoBehaviour
 
         StartCoroutine(SendTrackedEventsToServer());
 
-        Debug.Log("End corputine");
+        Debug.Log("End SendTrackedEventsDataAfterCooldown");
         StartCoroutine(SendTrackedEventsDataAfterCooldown());
+        yield break;
+    }
+
+    private IEnumerator AnalyticsServerAccess(Action<bool> isAccessCallback)
+    {
+        UnityWebRequest connectionRequest = UnityWebRequest.Get(_serverUrl);
+
+        yield return connectionRequest.SendWebRequest();
+
+        if (connectionRequest.result == UnityWebRequest.Result.Success)
+            isAccessCallback(true);
+        else
+            isAccessCallback(false);
+
         yield break;
     }
 
@@ -157,6 +192,9 @@ public class AnalyticsEventService : MonoBehaviour
 
         if (_isWebGLApp)
         {
+            if (!PlayerPrefs.HasKey(EVENT_CACHE_PLAYER_PREFS_KEY))
+                return;
+
             Debug.Log(PlayerPrefs.GetString(EVENT_CACHE_PLAYER_PREFS_KEY));
 
             string[] cachedEventsDataStrings = PlayerPrefs.GetString(EVENT_CACHE_PLAYER_PREFS_KEY).Trim(' ', '\n').Split('\n');
@@ -186,7 +224,7 @@ public class AnalyticsEventService : MonoBehaviour
 
         foreach(AnalyticsEvent cachedEvent in cachedAnalyticsEvents)
         {
-            Debug.Log(cachedEvent.DataString());
+            Debug.Log(cachedEvent.GetFormatDataString());
             _events.Enqueue(cachedEvent);
         }
     }

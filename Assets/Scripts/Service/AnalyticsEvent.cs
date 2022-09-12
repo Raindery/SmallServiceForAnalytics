@@ -15,7 +15,7 @@ public struct AnalyticsEvent
         _data = data;
     }
 
-    public string DataString()
+    public string GetFormatDataString()
     {
         return $"Type: {_type}\nData:[{_data}]";
     }
