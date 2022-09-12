@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 using Newtonsoft.Json;
 
 public sealed class AnalyticsEventService : MonoBehaviour
@@ -14,7 +13,6 @@ public sealed class AnalyticsEventService : MonoBehaviour
     private const string EVENT_CACHE_PLAYER_PREFS_KEY = "cachedAnalyticsEvents";
 
     [Header("General")]
-    [SerializeField] private Text _text;
     [SerializeField] private string _serverUrl;
     [SerializeField] private float _cooldownBeforeSend = 1f;
     [Min(50)]
@@ -31,6 +29,9 @@ public sealed class AnalyticsEventService : MonoBehaviour
     {
         if (Instance == null)
             Instance = this;
+
+        if (string.IsNullOrEmpty(_serverUrl))
+            throw new Exception("Server url string is empty!");
 
         #if UNITY_ANDROID
         _eventCachePath = Path.Combine(Application.dataPath, EVENT_CACHE_FILE_NAME);
@@ -51,27 +52,46 @@ public sealed class AnalyticsEventService : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(AnalyticsServerAccess(isAccess =>
-        {
-            if (isAccess)
-            {
-                TrackCachedEventsData();
-                StartCoroutine(SendTrackedEventsToServer());
-                StartCoroutine(SendTrackedEventsDataAfterCooldown());
-            }
-            else
-            {
-                Debug.Log("Analytic server is not access!");
-            }
-        }));
+        StartCoroutine(SendTrackedEventsDataAfterCooldown());
     }
 
-    private void OnApplicationPause(bool pause)
+    private void OnApplicationQuit()
     {
-        if (pause)
+        CacheTrackedEvents();
+    }
+
+    private void LateUpdate()
+    {
+        if(Time.frameCount % 1200 == 0 || Time.frameCount == 1)
         {
-            Debug.Log(_events.Count);
-            CacheTrackedEvents();
+            StartCoroutine(AnalyticsServerAccess(isAccess =>
+            {
+                if (isAccess)
+                {
+                    List<AnalyticsEvent> cachedAnalyticsEvent = GetCachedEventsData();
+
+                    if (cachedAnalyticsEvent != null && cachedAnalyticsEvent.Count > 0)
+                    {
+                        StartCoroutine(SendTrackedEventsToServer(cachedAnalyticsEvent.ToArray(), result =>
+                        {
+                            if (result == UnityWebRequest.Result.Success)
+                            {
+                                Debug.Log("Cached data sent!");
+                                ClearCachedEventsData();
+                            }
+
+                            else
+                            {
+                                Debug.LogError("Error sending cached data");
+                            }
+                        }));
+                    }
+                }
+                else
+                {
+                    Debug.Log("Analytic server is not access!");
+                }
+            }));
         }
     }
 
@@ -89,35 +109,17 @@ public sealed class AnalyticsEventService : MonoBehaviour
         _events.Enqueue(analyticsEvent);
     }
 
-    private IEnumerator SendTrackedEventsToServer()
+    private IEnumerator SendTrackedEventsToServer(AnalyticsEvent[] events, Action<UnityWebRequest.Result> result = null)
     {
-        if (_events == null || _events.Count <= 0)
-            yield break;
-
-        if (string.IsNullOrEmpty(_serverUrl))
-            throw new System.Exception("Server url string is empty!");
-
         string eventsDataJson = TrackedEventsDataToJson();
-
         UnityWebRequest eventsRequest = UnityWebRequest.Post(_serverUrl, eventsDataJson);
         UploadHandler uploadHandlerForEventRequest = new UploadHandlerRaw(Encoding.UTF8.GetBytes(eventsDataJson));
-
         eventsRequest.uploadHandler = uploadHandlerForEventRequest;
         eventsRequest.SetRequestHeader("Content-Type", "application/json; charset=UTF-8");
 
         yield return eventsRequest.SendWebRequest();
 
-
-        if(eventsRequest.result == UnityWebRequest.Result.Success)
-        {
-            Debug.Log(eventsRequest.downloadHandler.text);
-            _events.Clear();
-        }
-        else
-        {
-            Debug.Log(eventsRequest.error);
-        }
-
+        result(eventsRequest.result);
         yield break;
     }
 
@@ -132,7 +134,17 @@ public sealed class AnalyticsEventService : MonoBehaviour
             time += 0.1f;
         }
 
-        StartCoroutine(SendTrackedEventsToServer());
+        StartCoroutine(SendTrackedEventsToServer(_events.ToArray() ,result =>
+        {
+            if(result == UnityWebRequest.Result.Success)
+            {
+                _events.Clear();
+            }
+            else
+            {
+                Debug.LogError("");
+            }
+        }));
 
         Debug.Log("End SendTrackedEventsDataAfterCooldown");
         StartCoroutine(SendTrackedEventsDataAfterCooldown());
@@ -153,11 +165,6 @@ public sealed class AnalyticsEventService : MonoBehaviour
         yield break;
     }
 
-    private string TrackedEventsDataToJson()
-    {
-        return "{ \"events\":" + JsonConvert.SerializeObject(_events) + "}";
-    }
-
     private void CacheTrackedEvents()
     {
         if (_events == null || _events.Count <= 0)
@@ -175,6 +182,7 @@ public sealed class AnalyticsEventService : MonoBehaviour
 
             PlayerPrefs.SetString(EVENT_CACHE_PLAYER_PREFS_KEY, cacheTrackedEventsString + "\n");
             PlayerPrefs.Save();
+            Debug.Log("Cache tracked events successful in WebGL!");
             return;
         }
 
@@ -184,48 +192,82 @@ public sealed class AnalyticsEventService : MonoBehaviour
             File.Create(_eventCachePath).Close();
         
         File.AppendAllText(_eventCachePath, cacheTrackedEventsString + "\n");
+        Debug.Log("Cache tracked events successful!");
     }
 
-    private void TrackCachedEventsData()
+    private List<AnalyticsEvent> GetCachedEventsData()
     {
+        if (IsCacheEventsEmpty())
+            return null;
+
         List<AnalyticsEvent> cachedAnalyticsEvents = new List<AnalyticsEvent>();
 
         if (_isWebGLApp)
         {
-            if (!PlayerPrefs.HasKey(EVENT_CACHE_PLAYER_PREFS_KEY))
-                return;
-
             Debug.Log(PlayerPrefs.GetString(EVENT_CACHE_PLAYER_PREFS_KEY));
 
             string[] cachedEventsDataStrings = PlayerPrefs.GetString(EVENT_CACHE_PLAYER_PREFS_KEY).Trim(' ', '\n').Split('\n');
 
             for(int i = 0; i < cachedEventsDataStrings.Length; i++)
             {
-                cachedAnalyticsEvents.AddRange(JsonConvert.DeserializeObject<ICollection<AnalyticsEvent>>(cachedEventsDataStrings[i]));
+                Debug.Log(cachedEventsDataStrings[i]);
+                cachedAnalyticsEvents.AddRange(JsonConvert.DeserializeObject<AnalyticsEvent[]>(cachedEventsDataStrings[i]));
+                Debug.Log(cachedAnalyticsEvents.Count);
             }
+        }
+        else
+        {            
+            var lines = File.ReadLines(_eventCachePath);
+            foreach (string dataLine in lines)
+            {
+                Debug.Log(dataLine);
+                cachedAnalyticsEvents.AddRange(JsonConvert.DeserializeObject<AnalyticsEvent[]>(dataLine));
+            }
+        }
 
+        return cachedAnalyticsEvents;
+    }
+
+    private void ClearCachedEventsData()
+    {
+        if (IsCacheEventsEmpty())
+        {
+            Debug.Log("Cache events data is empty!");
+            return;
+
+        }
+
+        if (_isWebGLApp)
+        {
             PlayerPrefs.DeleteKey(EVENT_CACHE_PLAYER_PREFS_KEY);
             PlayerPrefs.Save();
         }
         else
         {
-            if (!File.Exists(_eventCachePath))
-                return;
-
-            var lines = File.ReadLines(_eventCachePath);
-            foreach(string dataLine in lines)
-            {
-                Debug.Log(dataLine);
-                cachedAnalyticsEvents.AddRange(JsonConvert.DeserializeObject<ICollection<AnalyticsEvent>>(dataLine));
-            }
-
             File.Delete(_eventCachePath);
         }
 
-        foreach(AnalyticsEvent cachedEvent in cachedAnalyticsEvents)
+        Debug.Log("Cache events data cleared!");
+    }
+
+    private bool IsCacheEventsEmpty()
+    {
+        if (_isWebGLApp)
         {
-            Debug.Log(cachedEvent.GetFormatDataString());
-            _events.Enqueue(cachedEvent);
+            if (!PlayerPrefs.HasKey(EVENT_CACHE_PLAYER_PREFS_KEY))
+                return true;
         }
+        else
+        {
+            if (!File.Exists(_eventCachePath))
+                return true;
+        }
+
+        return false;
+    }
+
+    private string TrackedEventsDataToJson()
+    {
+        return "{ \"events\":" + JsonConvert.SerializeObject(_events) + "}";
     }
 }
