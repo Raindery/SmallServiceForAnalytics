@@ -55,18 +55,9 @@ public sealed class AnalyticsEventService : MonoBehaviour
         StartCoroutine(SendTrackedEventsDataAfterCooldown());
     }
 
-    private void OnApplicationFocus(bool focus)
-    {
-        if (!focus)
-        {
-            CacheTrackedEvents();
-            _events.Clear();
-        }
-    }
-
     private void LateUpdate()
     {
-        if(Time.frameCount % 1200 == 0 || Time.frameCount == 1)
+        if (Time.frameCount % 1200 == 0 || Time.frameCount == 1)
         {
             StartCoroutine(AnalyticsServerAccess(isAccess =>
             {
@@ -83,10 +74,9 @@ public sealed class AnalyticsEventService : MonoBehaviour
                                 Debug.Log("Cached data sent!");
                                 ClearCachedEventsData();
                             }
-
                             else
                             {
-                                Debug.LogError("Error sending cached data");
+                                Debug.LogError(result.ToString());
                             }
                         }));
                     }
@@ -96,6 +86,15 @@ public sealed class AnalyticsEventService : MonoBehaviour
                     Debug.Log("Analytic server is not access!");
                 }
             }));
+        }
+    }
+
+    private void OnApplicationFocus(bool focus)
+    {
+        if (!focus)
+        {
+            CacheTrackedEvents();
+            _events.Clear();
         }
     }
 
@@ -146,7 +145,7 @@ public sealed class AnalyticsEventService : MonoBehaviour
             }
             else
             {
-                Debug.LogError("");
+                Debug.LogError(result.ToString());
             }
         }));
 
