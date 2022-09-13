@@ -34,7 +34,7 @@ public sealed class AnalyticsEventService : MonoBehaviour
             throw new Exception("Server url string is empty!");
 
         #if UNITY_ANDROID
-        _eventCachePath = Path.Combine(Application.dataPath, EVENT_CACHE_FILE_NAME);
+        _eventCachePath = Path.Combine(Application.persistentDataPath, EVENT_CACHE_FILE_NAME);
         #elif UNITY_WEBGL
         _isWebGLApp = true;
         #else
@@ -55,9 +55,13 @@ public sealed class AnalyticsEventService : MonoBehaviour
         StartCoroutine(SendTrackedEventsDataAfterCooldown());
     }
 
-    private void OnApplicationQuit()
+    private void OnApplicationFocus(bool focus)
     {
-        CacheTrackedEvents();
+        if (!focus)
+        {
+            CacheTrackedEvents();
+            _events.Clear();
+        }
     }
 
     private void LateUpdate()
@@ -111,7 +115,7 @@ public sealed class AnalyticsEventService : MonoBehaviour
 
     private IEnumerator SendTrackedEventsToServer(AnalyticsEvent[] events, Action<UnityWebRequest.Result> result = null)
     {
-        string eventsDataJson = TrackedEventsDataToJson();
+        string eventsDataJson = "{ \"events\":" + JsonConvert.SerializeObject(events) + "}";
         UnityWebRequest eventsRequest = UnityWebRequest.Post(_serverUrl, eventsDataJson);
         UploadHandler uploadHandlerForEventRequest = new UploadHandlerRaw(Encoding.UTF8.GetBytes(eventsDataJson));
         eventsRequest.uploadHandler = uploadHandlerForEventRequest;
@@ -204,15 +208,11 @@ public sealed class AnalyticsEventService : MonoBehaviour
 
         if (_isWebGLApp)
         {
-            Debug.Log(PlayerPrefs.GetString(EVENT_CACHE_PLAYER_PREFS_KEY));
-
             string[] cachedEventsDataStrings = PlayerPrefs.GetString(EVENT_CACHE_PLAYER_PREFS_KEY).Trim(' ', '\n').Split('\n');
 
             for(int i = 0; i < cachedEventsDataStrings.Length; i++)
             {
-                Debug.Log(cachedEventsDataStrings[i]);
                 cachedAnalyticsEvents.AddRange(JsonConvert.DeserializeObject<AnalyticsEvent[]>(cachedEventsDataStrings[i]));
-                Debug.Log(cachedAnalyticsEvents.Count);
             }
         }
         else
@@ -220,7 +220,6 @@ public sealed class AnalyticsEventService : MonoBehaviour
             var lines = File.ReadLines(_eventCachePath);
             foreach (string dataLine in lines)
             {
-                Debug.Log(dataLine);
                 cachedAnalyticsEvents.AddRange(JsonConvert.DeserializeObject<AnalyticsEvent[]>(dataLine));
             }
         }
@@ -234,7 +233,6 @@ public sealed class AnalyticsEventService : MonoBehaviour
         {
             Debug.Log("Cache events data is empty!");
             return;
-
         }
 
         if (_isWebGLApp)
@@ -264,10 +262,5 @@ public sealed class AnalyticsEventService : MonoBehaviour
         }
 
         return false;
-    }
-
-    private string TrackedEventsDataToJson()
-    {
-        return "{ \"events\":" + JsonConvert.SerializeObject(_events) + "}";
     }
 }

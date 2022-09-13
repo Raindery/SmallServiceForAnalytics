@@ -141,7 +141,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!224 &34527047
 RectTransform:
@@ -273,7 +273,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!224 &43184116
 RectTransform:
@@ -370,6 +370,10 @@ PrefabInstance:
     - target: {fileID: 5654129829804493103, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_Name
       value: AddCoint
+      objectReference: {fileID: 0}
+    - target: {fileID: 5654129829804493103, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 5654129831468817413, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_Spacing.x
@@ -475,6 +479,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: ButtonsList
       objectReference: {fileID: 0}
+    - target: {fileID: 5654129831468817419, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 5654129831476297301, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 5654129831476297303, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_Text
       value: Add Coins
@@ -532,7 +544,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!114 &1107235190
 MonoBehaviour:
@@ -631,7 +643,7 @@ GameObject:
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!81 &1169728689
 AudioListener:
@@ -714,7 +726,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!224 &1245329409
 RectTransform:
@@ -795,7 +807,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!224 &1548950659
 RectTransform:
@@ -928,7 +940,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!114 &1905511813
 MonoBehaviour:
