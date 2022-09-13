@@ -120,7 +120,7 @@ public sealed class AnalyticsEventService : MonoBehaviour
 
     private IEnumerator SendTrackedEventsToServer(AnalyticsEvent[] events, Action<UnityWebRequest.Result> result = null)
     {
-        string eventsDataJson = TrackedEventsDataToJson();
+        string eventsDataJson = "{ \"events\":" + JsonConvert.SerializeObject(events) + "}";
         UnityWebRequest eventsRequest = UnityWebRequest.Post(_serverUrl, eventsDataJson);
         UploadHandler uploadHandlerForEventRequest = new UploadHandlerRaw(Encoding.UTF8.GetBytes(eventsDataJson));
         eventsRequest.uploadHandler = uploadHandlerForEventRequest;
@@ -265,10 +265,5 @@ public sealed class AnalyticsEventService : MonoBehaviour
         }
 
         return false;
-    }
-
-    private string TrackedEventsDataToJson()
-    {
-        return "{ \"events\":" + JsonConvert.SerializeObject(_events) + "}";
     }
 }
