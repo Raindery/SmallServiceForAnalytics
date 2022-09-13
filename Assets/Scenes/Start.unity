@@ -178,6 +178,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AnalyticsEventService
       objectReference: {fileID: 0}
+    - target: {fileID: 6614980616407898461, guid: 3d15e67f0727aeb47b98633b4a665ca2, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3d15e67f0727aeb47b98633b4a665ca2, type: 3}
 --- !u!1 &413977285
@@ -196,7 +200,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!114 &413977286
 MonoBehaviour:
@@ -260,7 +264,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!4 &440977522
 Transform:
@@ -294,7 +298,7 @@ GameObject:
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!81 &519420029
 AudioListener:
@@ -408,6 +412,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: StartLevel
       objectReference: {fileID: 0}
+    - target: {fileID: 5654129829804493103, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 5654129831468817413, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_Spacing.x
       value: 100
@@ -516,6 +524,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: ButtonsList
       objectReference: {fileID: 0}
+    - target: {fileID: 5654129831468817419, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 5654129831476297301, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 5654129831476297303, guid: 833d318fbe610444f8f079a153097e3a, type: 3}
       propertyPath: m_Text
       value: Start Level
@@ -569,7 +585,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!224 &790208630
 RectTransform:
@@ -719,7 +735,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!224 &1639154599
 RectTransform:
@@ -799,7 +815,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!114 &2031875634
 MonoBehaviour:
